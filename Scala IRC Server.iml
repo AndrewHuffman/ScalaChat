@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<module type="JAVA_MODULE" version="4">
+  <component name="FacetManager">
+    <facet type="scala" name="Scala">
+      <configuration>
+        <option name="compilerLibraryLevel" value="Global" />
+        <option name="compilerLibraryName" value="scala-compiler-2.8.0 (2)" />
+      </configuration>
+    </facet>
+  </component>
+  <component name="NewModuleRootManager" inherit-compiler-output="true">
+    <exclude-output />
+    <content url="file://$MODULE_DIR$">
+      <sourceFolder url="file://$MODULE_DIR$/src" isTestSource="false" />
+    </content>
+    <orderEntry type="inheritedJdk" />
+    <orderEntry type="sourceFolder" forTests="false" />
+    <orderEntry type="library" name="scala-library-2.8.0 (2)" level="application" />
+    <orderEntry type="library" name="ScalaQuery" level="project" />
+    <orderEntry type="library" name="H2 DB Driver" level="project" />
+    <orderEntry type="library" name="Squeryl" level="project" />
+    <orderEntry type="library" name="CGLIB - No Dep - 2.2" level="project" />
+    <javadoc-paths>
+      <root url="jar://$USER_HOME$/Desktop/scalaquery_2.8.1-0.9.1-javadocs.jar!/" />
+    </javadoc-paths>
+  </component>
+</module>
+
