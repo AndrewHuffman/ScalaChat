@@ -9,6 +9,7 @@ object UserModel extends Model[UserTable](IRCDB.users) {
     }
 
     def get(id: Long) = {
+        None
         IRCDB.users.lookup(id)
     }
 
