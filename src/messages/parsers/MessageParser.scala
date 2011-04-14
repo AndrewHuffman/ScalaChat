@@ -4,6 +4,7 @@ import util.parsing.combinator._
 import targets.User
 import messages.Message
 import db.UserModel
+import net.UserConnection
 
 case class Prefix
 case class ServerName(server: HostName) extends Prefix
@@ -18,6 +19,10 @@ case class NickName(name:String) {
 case class ChannelName(name:String)
 case class HostName(host:String)
 case class UserName(name:String)
+
+trait CommandParser extends TargetsParser {
+
+}
 
 trait TargetsParser extends RegexParsers {
     //TODO: Rewrite so that it can be nickname || *

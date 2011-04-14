@@ -14,7 +14,7 @@ class ChannelTable(val id: Long, val name : String,
                    val key : Option[String]) extends KeyedEntity[Long] {
     def this() = this(0,"", false, false, false, false, false, false, Some(""))
 
-    lazy val bans:OneToMany[ChannelBanTable] = IRCDB.channelToChanBans.left(this)
+    lazy val bans = IRCDB.channelToChanBans.left(this)
     lazy val users = IRCDB.channelUsers.left(this)
     lazy val invites = IRCDB.channelInvites.left(this)
 }
@@ -76,11 +76,11 @@ object IRCDB extends Schema {
     ))
 
     on(channels)(c => declare(
+        c.n_mode defaultsTo(false),
         c.p_mode defaultsTo(false),
         c.s_mode defaultsTo(false),
         c.i_mode defaultsTo(false),
         c.t_mode defaultsTo(false),
-        c.n_mode defaultsTo(false),
         c.m_mode defaultsTo(false),
         c.name is(unique, indexed)
     ))

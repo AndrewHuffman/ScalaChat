@@ -4,8 +4,8 @@ import net.UserConnection
 import messages.Success
 
 /**
- * Not thread safe.
- */
+* Not thread safe.
+*/
 class User(connection: UserConnection) {
     private var nick:String = ""
     private var user:String = ""

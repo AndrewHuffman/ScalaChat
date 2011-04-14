@@ -2,15 +2,16 @@ package commands
 
 import collection.mutable.HashMap
 import messages.{Reply, Message}
+import targets.User
 
 object Commander {
-    object UnknownCommand extends AbstractCommand("") {
-        def execute(msg:Message) = {
+    object UnknownCommand extends Executable {
+        override def execute(msg:Message) = {
             ReplyBuilder(Reply.ERR_UNKNOWNCOMMAND, msg.command)
         }
     }
 
-    val _commandMap = HashMap.empty[String, AbstractCommand]
+    val _commandMap = HashMap.empty[String, AbstractCommandExecutable]
 
     def registerCommands(acs: AbstractCommandSet) {
         acs.getCommands.foreach({(c) =>

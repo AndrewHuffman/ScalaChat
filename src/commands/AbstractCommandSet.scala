@@ -3,12 +3,12 @@ package commands
 import collection.mutable.HashSet
 
 abstract class AbstractCommandSet {
-    private val _commands = new HashSet[AbstractCommand]
+    private val _commands = new HashSet[AbstractParameterCommand[_]]
 
     //private def _addCommand()
     //use a map
 
-    protected def addCommand(command: AbstractCommand) = {
+    protected def addCommand(command: AbstractParameterCommand[_]) = {
         _commands.add(command)
     }
 

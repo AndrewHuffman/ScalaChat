@@ -8,14 +8,12 @@ abstract class Model[T](table :Table[T]) {
     val getAllQuery = from(table)(t => select(t))
 
     def getAll = {
-        val qall =
         execute {
             for(row <- getAllQuery) yield row
         }
     }
 
     def count = {
-        val qall = from(table)(t => select(t))
         execute {
             getAllQuery.size
         }
@@ -31,9 +29,7 @@ abstract class Model[T](table :Table[T]) {
         }
     }
 
-    def execute[T](p: => T):T = IRCDB.execute {
-        p
-    }
+    def execute[T](p: => T):T = IRCDB.execute { p }
 
     def getWhere(whereClause:T => LogicalBoolean) = {
         val query = table.where(whereClause)
