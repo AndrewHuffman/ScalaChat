@@ -1,16 +1,19 @@
 package commands
 
 import messages._
+import parsers.Params
+import util.parsing.combinator._
 
-/**
- * Created by IntelliJ IDEA.
- * User: Andrew
- * Date: 3/24/11
- * Time: 3:24 PM
- * To change this template use File | Settings | File Templates.
- */
+abstract class AbstractCommand(srcMsg:Message) {
+    def execute():ReplyBuilder
+}
 
-abstract class Command(srcMsg: Message) extends Executable
+case class ReplyBuilder(reply:Reply, params: String*) {
+    def getMessage():String = {
+        val paramsArr = params.toArray
+        reply.createMessage(paramsArr)
+    }
+}
 
 trait ValidParams {
     def assertParamLength(params: Params, minSize: Int, requireTail: Boolean) = {

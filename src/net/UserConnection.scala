@@ -4,8 +4,9 @@ import java.net.Socket
 import java.io.{BufferedReader, InputStreamReader, PrintStream}
 import io.BufferedSource
 import actors.Actor
-import messages.{Message, MessageParser}
+import messages.{Message}
 import targets.User
+import messages.parsers.MessageParser
 
 //TODO: Server will have actor which handles messages from the clients
 class UserConnection(socket: Socket) extends Thread {

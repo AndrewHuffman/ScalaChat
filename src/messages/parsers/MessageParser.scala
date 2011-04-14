@@ -1,27 +1,49 @@
-package messages
+package messages.parsers
 
 import util.parsing.combinator._
-import java.util.Scanner
 import targets.User
+import messages.Message
 
 case class Prefix
-case class ServerName(server: String) extends Prefix
-case class UserInfo(nick: String, user: String, host: String) extends Prefix
+case class ServerName(server: HostName) extends Prefix
+case class UserMask(nick: Option[NickName], user: Option[UserName], host: Option[HostName]) extends Prefix
 case class Params(list: List[String], tail: String)
 case class MessageData(user:User, prefix:Option[Prefix], command:String, params:Option[Params])
+case class NickName(name:String)
+case class ChannelName(name:String)
+case class HostName(host:String)
+case class UserName(name:String)
 
-trait PrefixParser extends JavaTokenParsers {
-    def nickname: Parser[String] = """[\w][\w\-\[\]\\\`\^\{\}\|]*""".r
-    def username: Parser[String] = """[^\s@]+""".r
-    def hostname: Parser[String] = """[\w\.]+\w+""".r
-    def prefix: Parser[Prefix] =
-        ((nickname~"!"~username~"@"~hostname ^^ {
-            case nick~"!"~user~"@"~host => UserInfo(nick, user, host)
-        }) |(hostname ^^ {case host => ServerName(host)})
-    )
+trait TargetsParser extends RegexParsers {
+
+    //TODO: Rewrite so that it can be nickname || *
+    def usermask: Parser[UserMask] = nickname~"!"~username~"@"~hostname ^^ {
+        case nick~"!"~user~"@"~host => UserMask(Some(nick),Some(user),Some(host))
+    }
+    def nickname: Parser[NickName] = """[\w][\w\-\[\]\\\`\^\{\}\|]*""".r ^^ {
+        case nick => NickName(nick)
+    }
+    def username: Parser[UserName] = """[^\s@]+""".r ^^ {
+        case user => UserName(user)
+    }
+    def hostname: Parser[HostName] = """[\w\.]+\w+""".r ^^ {
+        case host => HostName(host)
+    }
+    def channel: Parser[ChannelName] = """[#|&][^,\s]+""".r ^^ {
+        case chan => ChannelName(chan)
+    }
 }
 
-//Scala Parsers aren't thread safe?!?!!??!
+//trait CommandParameterParser extends TargetsParser {
+//    def target: Parser[Any] = to~repsep(target,",")
+//    def to: Parser[Any] = channel | username~"@"~hostname | nickname //|mask
+//}
+
+trait PrefixParser extends TargetsParser {
+    def prefix: Parser[Prefix] = usermask | (hostname ^^ {case host => ServerName(host)})
+}
+
+//Scala Parsers aren't thread safe.
 class MessageParser(user :User) extends PrefixParser {
    def parseLine(line :CharSequence):Message = {
         new Message(parseAll(message, line).get)
@@ -48,7 +70,7 @@ class MessageParser(user :User) extends PrefixParser {
     //val validIpAddress: MessageParser[Any] = """"(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])""".r ^^ (x=> {println("ip: " +x)})
     //val validHostname: MessageParser[Any] = """"(([a-zA-Z]|[a-zA-Z][a-zA-Z0-9\-]*[a-zA-Z0-9])\.)*([A-Za-z]|[A-Za-z][A-Za-z0-9\-]*[A-Za-z0-9])""".r ^^ (x=> {println("hostname: " +x)})
 
-//
+// import java.util.Scanner
 //object ParserTest extends MessageParser {
 //    def main() {
 //        val in = new Scanner(System.in)

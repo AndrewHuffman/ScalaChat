@@ -5,17 +5,19 @@ import org.squeryl._
 import dsl.ast.LogicalBoolean
 
 abstract class Model[T](table :Table[T]) {
+    val getAllQuery = from(table)(t => select(t))
+
     def getAll = {
-        val qall = from(table)(t => select(t))
+        val qall =
         execute {
-            for(row <- qall) yield row
+            for(row <- getAllQuery) yield row
         }
     }
 
     def count = {
         val qall = from(table)(t => select(t))
         execute {
-            qall.size
+            getAllQuery.size
         }
     }
 

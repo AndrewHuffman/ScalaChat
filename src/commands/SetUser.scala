@@ -1,16 +1,8 @@
 package commands
 
-import messages.{Reply, ReplyBuilder, Message}
+import messages.{Reply, Message}
 
-/**
- * Created by IntelliJ IDEA.
- * User: Andrew
- * Date: 3/24/11
- * Time: 3:45 PM
- * To change this template use File | Settings | File Templates.
- */
-
-class SetUser(srcMsg:Message) extends Command(srcMsg) {
+class SetUser(srcMsg:Message) extends AbstractCommand(srcMsg) {
     def execute:ReplyBuilder = {
         val user = srcMsg.user
         val params = srcMsg.params

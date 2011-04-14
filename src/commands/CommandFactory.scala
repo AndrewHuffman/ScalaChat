@@ -1,23 +1,15 @@
 package commands
 
-/**
- * Created by IntelliJ IDEA.
- * User: Andrew
- * Date: 3/24/11
- * Time: 3:38 PM
- * To change this template use File | Settings | File Templates.
- */
-
 import ValidCommands._
 import messages.Message
 
 object CommandFactory {
 
-    def getCommandFor(message: Message):Command = {
+    def getCommandFor(message: Message):AbstractCommand = {
         getCommandFor(message.command, message)
     }
 
-    def getCommandFor(commandString:String, srcMsg: Message):Command = {
+    def getCommandFor(commandString:String, srcMsg: Message):AbstractCommand = {
         val commandEnum = ValidCommands.values.find(_.toString.equals(commandString.toUpperCase())) match {
             case Some(found) => found
             case None => UNKNOWN
@@ -25,7 +17,7 @@ object CommandFactory {
         getCommandFor(commandEnum, srcMsg)
     }
 
-    def getCommandFor(commandEnum: ValidCommands, srcMsg: Message): Command = {
+    def getCommandFor(commandEnum: ValidCommands, srcMsg: Message): AbstractCommand = {
         commandEnum match {
             case PING => new Ping(srcMsg)
             case PONG => new Pong(srcMsg)

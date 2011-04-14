@@ -2,15 +2,7 @@ package commands
 
 import messages._
 
-/**
- * Created by IntelliJ IDEA.
- * User: Andrew
- * Date: 3/24/11
- * Time: 3:45 PM
- * To change this template use File | Settings | File Templates.
- */
-
-class SetNick(srcMsg:Message) extends Command(srcMsg) {
+class SetNick(srcMsg:Message) extends AbstractCommand(srcMsg) {
     def execute:ReplyBuilder = {
         val user = srcMsg.user
         val params = srcMsg.params
