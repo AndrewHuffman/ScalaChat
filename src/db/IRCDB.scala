@@ -59,6 +59,14 @@ object IRCDB extends Schema {
     val channelBans = table[ChannelBanTable]
     val opers = table[OpersTable]
 
+    Class.forName("org.h2.Driver")
+    SessionFactory.concreteFactory = Some(() =>
+        Session.create(
+            java.sql.DriverManager.
+                getConnection("jdbc:h2:~/irc",
+                "ScalaIRC",""), new H2Adapter)
+    )
+
     on(users)(u => declare(
         u.i_mode defaultsTo(false),
         u.w_mode defaultsTo(false),
@@ -96,13 +104,6 @@ object IRCDB extends Schema {
         transaction {
             query
         }
-    }
-
-    def init {
-        Class.forName("org.h2.Driver") //what's the point in this...?
-
-        SessionFactory.concreteFactory = Some(() =>
-            Session.create(java.sql.DriverManager.getConnection("jdbc:h2:~/irc","ScalaIRC",""), new H2Adapter))
     }
 
     def getAllChannels = {

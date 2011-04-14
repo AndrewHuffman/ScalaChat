@@ -4,15 +4,14 @@ import messages._
 import parsers.Params
 import util.parsing.combinator.Parsers
 
-abstract class AbstractCommand {
+
+//TODO: Should Commands extend (msg) => ReplyBuilder and have an apply method?
+abstract class AbstractCommand(val name: String) {
     def execute(msg:Message):ReplyBuilder
 }
 
-//TODO: Use an implicit for the parser
-abstract class AbstractRichCommand(name:String) extends AbstractCommand
-
 case class ReplyBuilder(reply:Reply, params: String*) {
-    def getMessage():String = {
+    def get:String = {
         val paramsArr = params.toArray
         reply.createMessage(paramsArr)
     }

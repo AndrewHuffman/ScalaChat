@@ -1,22 +1,16 @@
 package commands
 
-import collection.mutable.ArrayBuffer
-
-/**
- * Created by IntelliJ IDEA.
- * User: Andrew
- * Date: 4/13/11
- * Time: 7:49 PM
- * To change this template use File | Settings | File Templates.
- */
+import collection.mutable.HashSet
 
 abstract class AbstractCommandSet {
-    private val _commands = new ArrayBuffer[AbstractCommand]
+    private val _commands = new HashSet[AbstractCommand]
 
     //private def _addCommand()
     //use a map
 
-    protected def command(command: AbstractCommand) = {
-
+    protected def addCommand(command: AbstractCommand) = {
+        _commands.add(command)
     }
+
+    def getCommands = _commands.toList
 }

@@ -7,6 +7,7 @@ import actors.Actor
 import messages.{Message}
 import targets.User
 import messages.parsers.MessageParser
+import commands.Commander
 
 //TODO: Server will have actor which handles messages from the clients
 class UserConnection(socket: Socket) extends Thread {
@@ -19,9 +20,12 @@ class UserConnection(socket: Socket) extends Thread {
         //TODO: "register" user
         var line = ""
         while({(line = in.readLine); line != null}) {
-            Console.println("received: " + line)
+            console("received: " + line)
+            val reply = Commander.execute(parser.parseLine(line.trim)).get
+
             //TODO: Handle parser error
-            handleMessage(parser.parseLine(line.trim))
+            sendMsg(reply)
+            console("reply: "+reply)
         }
         //TODO: "un-register" user
     }
@@ -30,8 +34,7 @@ class UserConnection(socket: Socket) extends Thread {
         out.println(msg);
     }
 
-    private def handleMessage(msg: Message) {
-        out.println(msg.executeCommand.getMessage)
+    def console(msg: CharSequence) {
+        Console.println(msg)
     }
-
 }

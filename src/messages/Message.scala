@@ -15,9 +15,6 @@ import commands.{ReplyBuilder}
 class Message(val user:User, val prefix :Option[Prefix], val command :String, val params :Params) {
     def this(data: MessageData) = this(data.user, data.prefix, data.command, data.params.getOrElse(Params("")))
 
-    def executeCommand:ReplyBuilder = {
-//        val command = CommandFactory.getCommandFor(this)
-//        command.execute
-        ReplyBuilder(Reply.RPL_NONE)
-    }
+    //def apply()
+    //def unapply()
 }

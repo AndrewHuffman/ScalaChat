@@ -1,26 +1,19 @@
 package commands
 
 import messages.{Reply, Message}
-import messages.parsers.{NickName, TargetsParser}
+import messages.parsers.{TargetsParser}
 import util.parsing.combinator._
 
-object DefaultCommands
-
-class UnknownCommand extends AbstractCommand {
-    def execute(msg:Message) = {
-        ReplyBuilder(Reply.ERR_UNKNOWNCOMMAND, msg.command)
-    }
+object DefaultCommands extends AbstractCommandSet {
+    addCommand(Nick)
 }
 
 object TestParser extends TargetsParser {
     def parseMe(string: String) = parseAll(nickname,string).get
 }
 
-class Nick extends AbstractRichCommand("nick") {
+object Nick extends AbstractCommand("nick") {
     //(Parser[T] => T) => ReplyBuilder
-
-
-
     def execute(srcMsg: Message) = {
         val nick = TestParser.parseMe(srcMsg.params.params)
         nick.inUse match {
