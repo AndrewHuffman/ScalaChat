@@ -2,28 +2,18 @@ package commands
 
 import messages._
 import parsers.Params
-import util.parsing.combinator._
+import util.parsing.combinator.Parsers
 
-abstract class AbstractCommand(srcMsg:Message) {
-    def execute():ReplyBuilder
+abstract class AbstractCommand {
+    def execute(msg:Message):ReplyBuilder
 }
+
+//TODO: Use an implicit for the parser
+abstract class AbstractRichCommand(name:String) extends AbstractCommand
 
 case class ReplyBuilder(reply:Reply, params: String*) {
     def getMessage():String = {
         val paramsArr = params.toArray
         reply.createMessage(paramsArr)
-    }
-}
-
-trait ValidParams {
-    def assertParamLength(params: Params, minSize: Int, requireTail: Boolean) = {
-        (params.list.length < minSize) match {
-            case false => false
-            case true if requireTail => {
-                if (params.tail.trim.isEmpty) false
-                else true
-            }
-            case _ => true
-        }
     }
 }

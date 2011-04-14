@@ -15,7 +15,7 @@ class UserConnection(socket: Socket) extends Thread {
     private val user = new User(this)
     private val parser = new MessageParser(user)
 
-    override def run(): Unit = {
+    override def run() {
         //TODO: "register" user
         var line = ""
         while({(line = in.readLine); line != null}) {

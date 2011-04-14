@@ -5,6 +5,7 @@ import java.util.Map;
 
 public enum Reply {
 	RPL_NONE(300,""),
+    RPL_CUSTOM(200,"%1"),
 	//301-400
 	/* Error Replies */
 	ERR_NOSUCHNICK (401, "%1 :No such nick/channel"),

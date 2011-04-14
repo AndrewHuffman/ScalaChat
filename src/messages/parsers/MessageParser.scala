@@ -3,19 +3,23 @@ package messages.parsers
 import util.parsing.combinator._
 import targets.User
 import messages.Message
+import db.UserModel
 
 case class Prefix
 case class ServerName(server: HostName) extends Prefix
 case class UserMask(nick: Option[NickName], user: Option[UserName], host: Option[HostName]) extends Prefix
-case class Params(list: List[String], tail: String)
+case class Params(params: String)
 case class MessageData(user:User, prefix:Option[Prefix], command:String, params:Option[Params])
-case class NickName(name:String)
+case class NickName(name:String) {
+    def inUse = {
+        UserModel.exists(name)
+    }
+}
 case class ChannelName(name:String)
 case class HostName(host:String)
 case class UserName(name:String)
 
 trait TargetsParser extends RegexParsers {
-
     //TODO: Rewrite so that it can be nickname || *
     def usermask: Parser[UserMask] = nickname~"!"~username~"@"~hostname ^^ {
         case nick~"!"~user~"@"~host => UserMask(Some(nick),Some(user),Some(host))
@@ -57,12 +61,13 @@ class MessageParser(user :User) extends PrefixParser {
         }
 
     def command: Parser[String] = """([A-Za-z]+)|([0-9]{3})""".r
-    def params: Parser[Params] = rep(param)~opt(":"~tail) ^^ {
-            case params~None => Params(params, "")
-            case params~Some(":"~tail) => Params(params,tail)
-        }
-    def param: Parser[String] = """[^:][\S]*""".r
-    def tail: Parser[String] = """.*$""".r
+    def params: Parser[Params] = """.*$""".r ^^ (p => Params(p))
+//    def params: Parser[Params] = rep(param)~opt(":"~tail) ^^ {
+//            case params~None => Params(params, "")
+//            case params~Some(":"~tail) => Params(params,tail)
+//        }
+//    def param: Parser[String] = """[^:][\S]*""".r
+//    def tail: Parser[String] = """.*$""".r
     def letter: Parser[String] = """[A-Za-z]""".r
 }
 

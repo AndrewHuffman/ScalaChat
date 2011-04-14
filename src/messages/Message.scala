@@ -2,7 +2,7 @@ package messages
 
 import parsers._
 import targets.User
-import commands.{ReplyBuilder, CommandFactory}
+import commands.{ReplyBuilder}
 
 /**
  * Created by IntelliJ IDEA.
@@ -13,10 +13,11 @@ import commands.{ReplyBuilder, CommandFactory}
  */
 
 class Message(val user:User, val prefix :Option[Prefix], val command :String, val params :Params) {
-    def this(data: MessageData) = this(data.user, data.prefix, data.command, data.params.getOrElse(Params(Nil,"")))
+    def this(data: MessageData) = this(data.user, data.prefix, data.command, data.params.getOrElse(Params("")))
 
     def executeCommand:ReplyBuilder = {
-        val command = CommandFactory.getCommandFor(this)
-        command.execute
+//        val command = CommandFactory.getCommandFor(this)
+//        command.execute
+        ReplyBuilder(Reply.RPL_NONE)
     }
 }
