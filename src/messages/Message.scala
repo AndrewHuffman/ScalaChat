@@ -1,7 +1,7 @@
 package messages
 
 import parsers._
-import targets.User
+import db.User
 import commands.{ReplyBuilder}
 
 /**

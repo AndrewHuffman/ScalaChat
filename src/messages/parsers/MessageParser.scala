@@ -1,24 +1,8 @@
 package messages.parsers
 
 import util.parsing.combinator._
-import targets.User
+import db.User
 import messages.Message
-import db.UserModel
-import net.UserConnection
-
-case class Prefix
-case class ServerName(server: HostName) extends Prefix
-case class UserMask(nick: Option[NickName], user: Option[UserName], host: Option[HostName]) extends Prefix
-case class Params(params: String)
-case class MessageData(user:User, prefix:Option[Prefix], command:String, params:Option[Params])
-case class NickName(name:String) {
-    def inUse = {
-        UserModel.exists(name)
-    }
-}
-case class ChannelName(name:String)
-case class HostName(host:String)
-case class UserName(name:String)
 
 trait CommandParser extends TargetsParser {
 

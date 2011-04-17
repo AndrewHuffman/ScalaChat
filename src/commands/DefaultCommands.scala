@@ -1,15 +1,27 @@
 package commands
 
 import messages.{Reply, Message}
-import messages.parsers.{TargetsParser}
 import util.parsing.combinator._
+import messages.parsers.{NickName, TargetsParser}
+import db.User
 
 object DefaultCommands extends AbstractCommandSet {
-    //addCommand(Nick)
+    addCommand(Nick)
 }
 
 object TestParser extends TargetsParser {
     def parseMe(string: String) = parseAll(nickname,string).get
+}
+
+object NickParams extends AbstractParameters[(NickName)] {
+    def apply(nick: (NickName), u: User) = {
+
+        ReplyBuilder(Reply.RPL_NONE)
+    }
+}
+
+object Nick extends AbstractParameterCommand[(NickName)]("nick", NickParams) {
+    def paramParser = nickname
 }
 
 //object Nick extends AbstractCommand("nick") {

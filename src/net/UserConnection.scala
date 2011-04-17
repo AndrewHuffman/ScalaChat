@@ -2,10 +2,7 @@ package net
 
 import java.net.Socket
 import java.io.{BufferedReader, InputStreamReader, PrintStream}
-import io.BufferedSource
-import actors.Actor
-import messages.{Message}
-import targets.User
+import db.User
 import messages.parsers.MessageParser
 import commands.Commander
 

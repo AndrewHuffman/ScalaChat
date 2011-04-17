@@ -3,9 +3,12 @@ package commands
 import messages._
 import parsers.{CommandParser, Params}
 import util.parsing.combinator.Parsers
-import targets.User
+import db.User
+
+//TODO: Create a CommandBuilder
 
 //TODO: Should Commands extend (msg) => ReplyBuilder and have an apply method?
+sealed class CommandBase //just to get IntelliJ to shut up
 
 trait Executable {
     def execute(msg:Message):ReplyBuilder
@@ -38,4 +41,3 @@ case class ReplyBuilder(reply:Reply, params: String*) {
         reply.createMessage(paramsArr)
     }
 }
-
