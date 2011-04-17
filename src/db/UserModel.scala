@@ -5,7 +5,7 @@ import org.squeryl.PrimitiveTypeMode._
 import messages.parsers.UserMask
 
 object UserModel extends Model[UserTable](IRCDB.users) {
-    def get(nick: String) = {
+    def get(nick: String):Option[UserTable] = {
         getWhereFirst(user => user.nick === nick)
     }
 
@@ -16,11 +16,18 @@ object UserModel extends Model[UserTable](IRCDB.users) {
         }
     }
 
-    def get(id: Long) = {
+    def get(id: Long):Option[UserTable] = {
         IRCDB.users.lookup(id)
     }
 
-    def get(mask: UserMask) = {
+    def get(mask: UserMask):Option[UserTable] = {
         None
+    }
+
+    def register(user_id: Long) {
+        update(IRCDB.users)(u =>
+            where(u.id === user_id)
+            set(u.registered := true)
+        )
     }
 }

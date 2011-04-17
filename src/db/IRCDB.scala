@@ -28,6 +28,7 @@ object IRCDB extends Schema {
         u.w_mode defaultsTo(false),
         u.s_mode defaultsTo(false),
         u.o_mode defaultsTo(false),
+        u.registered defaultsTo(false),
         u.nick is(unique,indexed)
     ))
 
@@ -44,6 +45,8 @@ object IRCDB extends Schema {
     on(channelBans)(c => declare(
         columns(c.chan_id, c.ban_mask) are(unique)
     ))
+
+
 
     //The Channels and Users tables are connected through a many-to-many relationship
     //using the ChannelUsersTable.
