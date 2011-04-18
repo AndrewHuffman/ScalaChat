@@ -22,17 +22,20 @@ class UserConnection(socket: Socket) extends Thread {
     private val buff = new ArrayBuffer[Message](2)
 
     override def run() {
+        def timeSince(time: Long) = System.currentTimeMillis - time
         //TODO: "register" user
         var line = ""
         while({(line = in.readLine); line != null}) {
             console("received: " + line)
-            val userState = user.record //TODO: Potential concurrency problems?
 
             val msgToken = parser.parseLine(line.trim)
 
             val command = msgToken.command.toUpperCase
 
+            val time = System.currentTimeMillis
             val reply = Commander.execute(msgToken)
+            val timeDelta = timeSince(time)
+            console("Execution time ("+command+"): " + timeDelta)
 
             //TODO: Handle parser error
             sendMsg(reply)

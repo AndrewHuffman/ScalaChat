@@ -6,5 +6,10 @@ class User(val connection: UserConnection, val id: Long) {
     var hasSetNick = false
     var hasSetUser = false
 
-    def record = UserModel.get(id).get //TODO: Handle using getOrElse
+    def record = {
+        //TODO: Handle using getOrElse
+        UserModel.get(id).get
+    }
+
+    def nick(name: String) = UserModel.setNick(id, name)
 }

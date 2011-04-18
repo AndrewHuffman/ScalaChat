@@ -31,6 +31,10 @@ abstract class Model[T](table :Table[T]) {
 
     def execute[T](p: => T):T = IRCDB.execute { p }
 
+//    def get(id: Long):Option[T] = execute {
+//        table.lookup(id)
+//    }
+
     def getWhere(whereClause:T => LogicalBoolean) = {
         val query = table.where(whereClause)
         execute {

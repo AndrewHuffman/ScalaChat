@@ -2,28 +2,43 @@ package commands
 
 import messages.{Reply, Message}
 import util.parsing.combinator._
-import messages.parsers.{NickName, TargetsParser}
 import db.User
+import messages.parsers.{Tail, UserName, NickName, TargetsParser}
 
 object DefaultCommands extends AbstractCommandSet {
-    addCommand(Nick)
+    addCommand(NickCommand)
 }
 
 object TestParser extends TargetsParser {
-    def parseMe(string: String) = parseAll(nickname,string).get
+    def parseMe(in: String) = parseAll(nickname,in).get
 }
 
 object NickParams extends AbstractParameters[(NickName)] {
     def apply(nick: (NickName), u: User) = {
-
-        ReplyBuilder(Reply.RPL_NONE)
+        if (nick.inUse) {
+            ReplyBuilder(Reply.ERR_NICKNAMEINUSE)
+        } else {
+            u.nick(nick.name)
+            ReplyBuilder(Reply.RPL_NONE)
+        }
     }
 }
 
-object Nick extends AbstractParameterCommand[(NickName)]("nick", NickParams) {
+object NickCommand extends AbstractParameterCommand[(NickName)]("nick", NickParams) {
     def paramParser = nickname
 }
 
+object UserCommand extends AbstractParameterCommand[(UserName,Tail)]("user", UserParams) {
+    def paramParser:Parser[(UserName, Tail)] = username~tail ^^ {
+        case username~tail => (username, tail)
+    }
+}
+
+object UserParams extends AbstractParameters[(UserName, Tail)] {
+    def apply(param: (UserName, Tail), u : User) = {
+        ReplyBuilder(Reply.RPL_NONE)
+    }
+}
 //object Nick extends AbstractCommand("nick") {
 //    //(Parser[T] => T) => ReplyBuilder
 //    def execute(srcMsg: Message) = {

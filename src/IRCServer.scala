@@ -4,7 +4,7 @@ import net.Server
 
 object IRCServer {
    def main(args: Array[String]) {
-       IRCDB //Initialize database session
+       IRCDB.init //Initialize database session
        Commander.registerCommands(DefaultCommands) //Initialize default commands
        (new Server).start //Initialize Server
    }

@@ -4,8 +4,13 @@ import util.parsing.combinator._
 import db.User
 import messages.Message
 
-trait CommandParser extends TargetsParser {
 
+//TODO: rename ParamterParser
+trait CommandParser extends TargetsParser {
+    def tail: Parser[Tail] = ":"~anything ^^ {
+        case "~"~anything => Tail(anything)
+    }
+    def anything: Parser[String] = ".*"
 }
 
 trait TargetsParser extends RegexParsers {

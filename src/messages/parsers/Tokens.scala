@@ -16,3 +16,4 @@ case class NickName(name:String) extends Tokens {
 case class ChannelName(name:String) extends Tokens
 case class HostName(host:String) extends Tokens
 case class UserName(name:String) extends Tokens
+case class Tail(tail: String) extends Tokens
