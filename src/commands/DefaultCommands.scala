@@ -14,6 +14,7 @@ object TestParser extends TargetsParser {
 }
 
 object NickParams extends AbstractParameters[(NickName)] {
+    //TODO: nick length check
     def apply(nick: (NickName), u: User) = {
         if (nick.inUse) {
             ReplyBuilder(Reply.ERR_NICKNAMEINUSE)
@@ -29,23 +30,18 @@ object NickCommand extends AbstractParameterCommand[(NickName)]("nick", NickPara
 }
 
 object UserCommand extends AbstractParameterCommand[(UserName,Tail)]("user", UserParams) {
-    def paramParser:Parser[(UserName, Tail)] = username~tail ^^ {
-        case username~tail => (username, tail)
+    def paramParser:Parser[(UserName, Tail)] = username~nonWhiteSpace~nonWhiteSpace~tail ^^ {
+        case user~nws1~nws2~realname => (user, realname)
     }
 }
 
 object UserParams extends AbstractParameters[(UserName, Tail)] {
     def apply(param: (UserName, Tail), u : User) = {
-        ReplyBuilder(Reply.RPL_NONE)
+        val userRecord = u.record
+        if (userRecord.registered) {
+            ReplyBuilder(Reply.ERR_ALREADYREGISTRED)
+        } else {
+            ReplyBuilder(Reply.RPL_NONE)
+        }
     }
 }
-//object Nick extends AbstractCommand("nick") {
-//    //(Parser[T] => T) => ReplyBuilder
-//    def execute(srcMsg: Message) = {
-//        val nick = TestParser.parseMe(srcMsg.params.params)
-//        nick.inUse match {
-//            case true => ReplyBuilder(Reply.ERR_NICKNAMEINUSE, nick.name)
-//            case false => ReplyBuilder(Reply.RPL_CUSTOM, "nickname changed to " + nick.name)
-//        }
-//    }
-//}

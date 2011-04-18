@@ -14,12 +14,23 @@ class UserConnection(socket: Socket) extends Thread {
 
     private val out = new PrintStream(socket.getOutputStream)
     private val in  = new BufferedReader(new InputStreamReader(socket.getInputStream))
-    private val tempUuid = UUID.randomUUID.toString
-    private val tempUser = new UserTable(0,tempUuid)
-    private val row = UserModel.insert(tempUser)
+
+    /**
+     * TODO:Fix
+     *
+     * The row for the user must be created when the connection is made.
+     * The nick field is unique and non-null, so it must be populated.
+     * I initialize the nick to a random UUID in order to add the row.
+     *
+     */
+    private val row = UserModel.insert(new UserTable(0, UUID.randomUUID.toString))
     private val user = new User(this, row.id)
+
     private val parser = new MessageParser(user)
-    private val buff = new ArrayBuffer[Message](2)
+
+
+
+    val host = socket.getInetAddress.getCanonicalHostName
 
     override def run() {
         def timeSince(time: Long) = System.currentTimeMillis - time

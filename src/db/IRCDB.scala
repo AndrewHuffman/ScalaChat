@@ -56,8 +56,6 @@ object IRCDB extends Schema {
         ))
     }
 
-
-
     def execute[T](query: => T):T = transaction {
         query
     }
