@@ -54,15 +54,15 @@ object IRCDB extends Schema {
         on(channelBans)(c => declare(
             columns(c.chan_id, c.ban_mask) are(unique)
         ))
+
+        transaction {
+            drop
+            create
+        }
     }
 
     def execute[T](query: => T):T = transaction {
         query
-    }
-
-    def getAllChannels = {
-        val query = from(channels)(c => select(c))
-        transaction { for(z <- query) yield z }
     }
 }
 

@@ -57,5 +57,4 @@ class MessageParser(user :User) extends PrefixParser {
 
     lazy val command: Parser[String] = """([A-Za-z]+)|([0-9]{3})""".r
     lazy val params: Parser[Params] = """.*$""".r ^^ (p => Params(p))
-    lazy val letter: Parser[String] = """[A-Za-z]""".r
 }

@@ -5,6 +5,9 @@ import java.util.Map;
 
 public enum Reply {
 	RPL_NONE(300,""),
+    RPL_MOTDSTART(375, ":- 127.0.0.1 Message of the day  -"),
+    RPL_MOTD(372, ":%1"),
+    RPL_ENDOFMOTD(376, ":End of /MOTD command"),
     RPL_CUSTOM(200,"%1"),
 	//301-400
 	/* Error Replies */
@@ -46,15 +49,19 @@ public enum Reply {
 	
 	private final int code;
 	private final String msg;
-	
-	Reply(int code) {
-		this(code, "FIXME: Default Message");
-	}
-	
+
 	Reply(int code, String msg) {
 		this.code = code;
 		this.msg = msg;
 	}
+
+	Reply(int code) {
+		this(code, "FIXME: Default Message");
+	}
+
+    public int getCode() {
+        return code;
+    }
 
     public String createMessage(String[] params) {
 		Map<String, String> placeholderMap = new HashMap<String, String>();
@@ -66,7 +73,7 @@ public enum Reply {
 		for(String placeholder : placeholderMap.keySet()) {
 			finalMsg = finalMsg.replace(placeholder, placeholderMap.get(placeholder));
 		}
-        if (code > 300) finalMsg = code + " " + finalMsg;
+
 		return finalMsg;
 	}
 }

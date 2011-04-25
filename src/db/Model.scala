@@ -3,9 +3,11 @@ package db
 import org.squeryl.PrimitiveTypeMode._
 import org.squeryl._
 import dsl.ast.LogicalBoolean
+import org.apache.log4j.Logger
 
-abstract class Model[T](table :Table[T]) {
+abstract class Model[T](protected val table :Table[T]) {
     val getAllQuery = from(table)(t => select(t))
+    val logger = Logger.getLogger(classOf[Model[T]])
 
     def getAll = {
         execute {

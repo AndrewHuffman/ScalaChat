@@ -1,13 +1,22 @@
 package commands
 
-import messages.{Reply, Message}
+import messages.{Reply, Message, ReplyBuilder}
 import db.{UserModel, User}
 import collection.mutable.{HashSet, HashMap}
+import actors.Actor
+import org.apache.log4j.Logger
 
 object Commander {
+    val logger = Logger.getLogger("Commander")
+
     object UnknownCommand extends Executable {
         override def execute(msg:Message) = {
-            ReplyBuilder(Reply.ERR_UNKNOWNCOMMAND, msg.command)
+            val usr = msg.user
+            val nick = msg.user.record.nick
+            if (isRegistered(usr))
+                new ReplyBuilder(nick, Reply.ERR_UNKNOWNCOMMAND, msg.command)
+            else
+                new ReplyBuilder(nick, Reply.RPL_NONE)
         }
     }
 
@@ -38,25 +47,28 @@ object Commander {
     }
 
     def execute(msg: Message) = {
-        val reply = getCommand(msg.command).execute(msg).get
+        val reply = getCommand(msg.command).execute(msg)
 
         /* TODO: Commands which require registration and initiate registration
-        should be handled in a CommandSet */
-
-        val isRegistered = msg.user.record.registered
+        should be handled differently*/
+        val user = msg.user
+        val isRegistered = user.record.registered
 
         if (!isRegistered) {
             val command = msg.command.toUpperCase
             if (command == "NICK") {
-                msg.user.hasSetNick = true
+                user.hasSetNick = true
             }
             else if(command == "USER") {
-                msg.user.hasSetUser = true
+                user.hasSetUser = true
             }
-            if (msg.user.hasSetNick && msg.user.hasSetUser) {
+            if (user.hasSetNick && user.hasSetUser) {
+                //TODO: This should not be here.
                 UserModel.register(msg.user.id)
+                reply.append(getCommand("motd").execute(msg))
             }
         }
+
         reply
     }
 

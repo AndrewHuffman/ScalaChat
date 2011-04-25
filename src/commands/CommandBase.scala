@@ -2,8 +2,8 @@ package commands
 
 import messages._
 import parsers.{CommandParser, Params}
-import util.parsing.combinator.Parsers
 import db.User
+import collection.mutable.ArrayBuffer
 
 //TODO: Create a CommandBuilder
 
@@ -16,28 +16,36 @@ trait Executable {
 
 abstract class AbstractCommandExecutable(val name: String) extends Executable
 
-abstract class AbstractParameterCommand[+T](name: String, params: AbstractParameters[T])
-    extends AbstractCommandExecutable(name) with CommandParser with Executable {
 
-    implicit def paramsToString(p : Params) = {
-        p.params
+//TODO: Investigate whether or not I actually need to separate
+//parameters from the command.
+
+abstract class AbstractParameterCommand[T](name: String)
+    extends AbstractCommandExecutable(name) with CommandParser {
+
+    def parseParams(params: Params):T = {
+        def printResult(resultType: String, msg: String, next: Input) {
+            println("("+resultType+") msg/T: " + msg + ", next: " + next.source)
+        }
+
+        val result = parseAll(paramParser, params.params)
+         result match {
+            case Error(msg, next) => printResult("error",msg, next)
+            case Failure(msg, next) => printResult("failure",msg, next)
+            case Success(t, next) => {
+                printResult("success", t.toString, next)
+            }
+        }
+        result.get
     }
-
-    def paramParser: Parser[T]
 
     def execute(msg:Message):ReplyBuilder = {
-        val parsedText = parseAll(paramParser, msg.params).get
-        params(parsedText, msg.user)
+        val parseOutput = parseParams(msg.params)
+        processParams(parseOutput, msg.user)
     }
+
+    protected def paramParser: Parser[T]
+
+    def processParams(t: T, u: User):ReplyBuilder
 }
 
-abstract class AbstractParameters[T] {
-    def apply(t: T, u: User):ReplyBuilder
-}
-
-case class ReplyBuilder(reply:Reply, params: String*) {
-    def get:String = {
-        val paramsArr = params.toArray
-        reply.createMessage(paramsArr)
-    }
-}
