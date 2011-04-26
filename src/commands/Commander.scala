@@ -8,6 +8,8 @@ import org.apache.log4j.Logger
 
 object Commander {
     val logger = Logger.getLogger("Commander")
+    val _commandMap = HashMap.empty[String, AbstractCommandExecutable]
+    val _isRegisteredCache = HashMap.empty[User, Boolean]
 
     object UnknownCommand extends Executable {
         override def execute(msg:Message) = {
@@ -20,8 +22,12 @@ object Commander {
         }
     }
 
-    val _commandMap = HashMap.empty[String, AbstractCommandExecutable]
-    val _isRegisteredCache = HashMap.empty[User, Boolean]
+    object Welcome extends Executable {
+        def execute(msg: Message) = {
+            val reply = new ReplyBuilder(msg.user.record.nick, Reply.RPL_WELCOME)
+            reply.append(Reply.RPL_HOST).append(Reply.RPL_CREATED)
+        }
+    }
 
     def registerCommands(acs: AbstractCommandSet) {
         acs.getCommands.foreach({(c) =>
@@ -65,6 +71,7 @@ object Commander {
             if (user.hasSetNick && user.hasSetUser) {
                 //TODO: This should not be here.
                 UserModel.register(msg.user.id)
+                reply.append(Welcome.execute(msg))
                 reply.append(getCommand("motd").execute(msg))
             }
         }

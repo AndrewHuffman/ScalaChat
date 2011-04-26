@@ -4,6 +4,11 @@ import java.util.HashMap;
 import java.util.Map;
 
 public enum Reply {
+    //Made up
+    RPL_WELCOME(1, ":Welcome to the ScalaChat Test IRC Server"),
+    RPL_HOST(2, ":Your host is localhost[127.0.0.1/6667]"),
+    RPL_CREATED(3, ":This server was created today."),
+    //REAL
 	RPL_NONE(300,""),
     RPL_MOTDSTART(375, ":- 127.0.0.1 Message of the day  -"),
     RPL_MOTD(372, ":%1"),
@@ -30,9 +35,9 @@ public enum Reply {
 	ERR_NOTONCHANNEL(442, "%1 :You're not on that channel"),
 	ERR_USERONCHANNEL(443, "%1 %2 :is already on channel"),
 	//444-450
-	ERR_NOTREGISTERED(451, "You have not registered"),
+	ERR_NOTREGISTERED(451, ":You have not registered"),
 	ERR_NEEDMOREPARAMS(452, "%1 :Not enough parameters"),
-	ERR_ALREADYREGISTRED(453, "You may not reregister"),
+	ERR_ALREADYREGISTRED(453, ":You may not reregister"),
 	//454-466
 	ERR_KEYSET(467, "%1 :Channel key already set"),
 	//468-470 NONE

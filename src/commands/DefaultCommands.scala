@@ -33,7 +33,8 @@ object NickCommand extends AbstractParameterCommand[NickName]("nick") {
     //TODO: nick length check
     //TODO: notify all
     def processParams(nick: NickName, u: User) = {
-        val oldNick = u.record.nick
+        val userRecord = u.record
+        val oldNick = if (userRecord.registered) u.record.nick else ""
 
         if (nick.inUse) {
             new ReplyBuilder(oldNick, Reply.ERR_NICKNAMEINUSE, nick.name)
@@ -43,13 +44,21 @@ object NickCommand extends AbstractParameterCommand[NickName]("nick") {
         }
     }
 
-    def paramParser = nickname
+    def paramParser = opt(":")~>nickname
 }
+
 object MOTD extends AbstractCommandExecutable("motd") {
     def execute(msg: Message) = {
         val nick = msg.user.record.nick
         val reply = new ReplyBuilder(nick,Reply.RPL_MOTDSTART)
-        reply.append(Reply.RPL_MOTD, "Test MOTD")
+        reply.append(Reply.RPL_MOTD, "Welcome to ScalaChat")
+        reply.append(Reply.RPL_MOTD, "This is a test MOTD that")
+        reply.append(Reply.RPL_MOTD, "is arbitrarily long")
+        reply.append(Reply.RPL_MOTD, "so that I can test")
+        reply.append(Reply.RPL_MOTD, "what this looks like blah blah")
+        reply.append(Reply.RPL_MOTD, "blah blah blah blah blah")
+        reply.append(Reply.RPL_MOTD, "Don't do anything stupid.")
+
         reply.append(Reply.RPL_ENDOFMOTD)
     }
 }

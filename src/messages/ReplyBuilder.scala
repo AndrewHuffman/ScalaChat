@@ -7,7 +7,6 @@ import collection.mutable.ArrayBuffer
 
 //TODO: I dislike this class. The method with communicating to clients needs to be overhauled
 class ReplyBuilder(dstNick: String, reply:Reply, params: String*) {
-    //val nickname = user.record.
     val _replies = new ArrayBuffer[(Reply, Array[String])]
     _replies.append((reply,params.toArray))
 
@@ -32,7 +31,8 @@ class ReplyBuilder(dstNick: String, reply:Reply, params: String*) {
             val reply = t._1
             val params = t._2
             if (reply != Reply.RPL_NONE) {
-                sb.append(MessageBuilder.create("127.0.0.1", reply.getCode.toString, reply.createMessage(params)))
+                //TODO: Smelly
+                sb.append(MessageBuilder.create("127.0.0.1", reply.getCode.toString, dstNick + " " + reply.createMessage(params)))
                 sb.append("\n")
             }
         })
@@ -44,16 +44,4 @@ class ReplyBuilder(dstNick: String, reply:Reply, params: String*) {
         reply.getCode
     }
 }
-
-//just to get IntelliJ to shut up
-
-
-
-
-
-
-//TODO: Investigate whether or not I actually need to separate
-//parameters from the command.
-
-
 
