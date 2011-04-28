@@ -1,10 +1,10 @@
 package commands
 
-import messages.{Reply, Message, ReplyBuilder}
 import db.{UserModel, User}
 import collection.mutable.{HashSet, HashMap}
 import actors.Actor
 import org.apache.log4j.Logger
+import messages.{Replies, UserMessage, ReplyMessage, ReplyBuilder}
 
 object Commander {
     val logger = Logger.getLogger("Commander")
@@ -12,20 +12,21 @@ object Commander {
     val _isRegisteredCache = HashMap.empty[User, Boolean]
 
     object UnknownCommand extends Executable {
-        override def execute(msg:Message) = {
+        override def execute(msg:UserMessage) = {
             val usr = msg.user
-            val nick = msg.user.record.nick
+            val reply = new ReplyBuilder(msg.user.record.nick)
             if (isRegistered(usr))
-                new ReplyBuilder(nick, Reply.ERR_UNKNOWNCOMMAND, msg.command)
+                reply.append(Replies.ERR_UNKNOWNCOMMAND(msg.command))
             else
-                new ReplyBuilder(nick, Reply.RPL_NONE)
+                reply.append(Replies.RPL_NONE)
         }
     }
 
     object Welcome extends Executable {
-        def execute(msg: Message) = {
-            val reply = new ReplyBuilder(msg.user.record.nick, Reply.RPL_WELCOME)
-            reply.append(Reply.RPL_HOST).append(Reply.RPL_CREATED)
+        def execute(msg: UserMessage) = {
+            val reply = new ReplyBuilder(msg.user.record.nick)
+            reply.append(Replies.RPL_WELCOME)
+            reply.append(Replies.RPL_HOST).append(Replies.RPL_CREATED)
         }
     }
 
@@ -52,7 +53,7 @@ object Commander {
         }
     }
 
-    def execute(msg: Message) = {
+    def execute(msg: UserMessage) = {
         val reply = getCommand(msg.command).execute(msg)
 
         /* TODO: Commands which require registration and initiate registration

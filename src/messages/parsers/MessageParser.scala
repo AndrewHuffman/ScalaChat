@@ -2,8 +2,7 @@ package messages.parsers
 
 import util.parsing.combinator._
 import db.User
-import messages.Message
-
+import messages.{UserMessage, Message}
 
 //TODO: rename ParamterParser
 trait CommandParser extends TargetsParser {
@@ -43,16 +42,13 @@ trait PrefixParser extends TargetsParser {
 }
 
 //Scala Parsers aren't thread safe.
-class MessageParser(user :User) extends PrefixParser {
-    def parseLine(line :CharSequence):Message = {
-        new Message(parseAll(message, line).get)
+class MessageParser(user :User) extends RegexParsers {
+    def parseLine(line :CharSequence):UserMessage = {
+        parseAll(message, line).get
     }
 
-    lazy val message: Parser[MessageData] = opt(":"~prefix)~command~opt(params) ^^ {
-            case Some(":"~prefix)~command~Some(params) => MessageData(user, Some(prefix), command, Some(params))
-            case None~command~Some(params) => MessageData(user, None, command, Some(params))
-            case Some(":"~prefix)~command~None => MessageData(user, Some(prefix), command, None)
-            case None~command~None => MessageData(user, None, command, None)
+    lazy val message: Parser[UserMessage] = command~opt(params) ^^ {
+            case command~param => new UserMessage(user, command, param)
         }
 
     lazy val command: Parser[String] = """([A-Za-z]+)|([0-9]{3})""".r

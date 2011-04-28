@@ -3,7 +3,7 @@ package commands
 import util.parsing.combinator._
 import db.User
 import messages.parsers.{Tail, UserName, NickName, TargetsParser, ChannelName}
-import messages.{ReplyBuilder, Reply, Message}
+import messages.{Replies, UserMessage, ReplyBuilder}
 
 object DefaultCommands extends AbstractCommandSet {
     addCommand(UserCommand)
@@ -17,30 +17,30 @@ object UserCommand extends AbstractParameterCommand[(UserName,Tail)]("user") {
         case user~nws1~nws2~realname => (user, realname)
     }
 
-    def processParams(param: (UserName, Tail), u : User) = {
+    override def processParams(param: (UserName, Tail), u : User, reply: ReplyBuilder) = {
         val userRecord = u.record
         val nick = u.record.nick
         if (userRecord.registered) {
-            new ReplyBuilder(nick, Reply.ERR_ALREADYREGISTRED)
+            reply.append(Replies.ERR_ALREADYREGISTRED)
         } else {
             u.username(param._1.name)
             u.realname(param._2.tail)
-            new ReplyBuilder(nick, Reply.RPL_NONE)
+            reply.append(Replies.RPL_NONE)
         }
     }
 }
 object NickCommand extends AbstractParameterCommand[NickName]("nick") {
     //TODO: nick length check
     //TODO: notify all
-    def processParams(nick: NickName, u: User) = {
+    override def processParams(nick: NickName, u: User, reply: ReplyBuilder) = {
         val userRecord = u.record
         val oldNick = if (userRecord.registered) u.record.nick else ""
 
         if (nick.inUse) {
-            new ReplyBuilder(oldNick, Reply.ERR_NICKNAMEINUSE, nick.name)
+            reply.append(Replies.ERR_NICKNAMEINUSE(nick.name))
         } else {
             u.nick(nick.name)
-            new ReplyBuilder(oldNick, Reply.RPL_NONE)
+            reply.append(Replies.RPL_NONE)
         }
     }
 
@@ -48,18 +48,23 @@ object NickCommand extends AbstractParameterCommand[NickName]("nick") {
 }
 
 object MOTD extends AbstractCommandExecutable("motd") {
-    def execute(msg: Message) = {
+    def execute(msg: UserMessage) = {
         val nick = msg.user.record.nick
-        val reply = new ReplyBuilder(nick,Reply.RPL_MOTDSTART)
-        reply.append(Reply.RPL_MOTD, "Welcome to ScalaChat")
-        reply.append(Reply.RPL_MOTD, "This is a test MOTD that")
-        reply.append(Reply.RPL_MOTD, "is arbitrarily long")
-        reply.append(Reply.RPL_MOTD, "so that I can test")
-        reply.append(Reply.RPL_MOTD, "what this looks like blah blah")
-        reply.append(Reply.RPL_MOTD, "blah blah blah blah blah")
-        reply.append(Reply.RPL_MOTD, "Don't do anything stupid.")
-
-        reply.append(Reply.RPL_ENDOFMOTD)
+        val reply = new ReplyBuilder(nick)
+        reply.append(Replies.RPL_MOTDSTART)
+        reply.append(Replies.RPL_MOTD("Welcome to ScalaChat"))
+        reply.append(Replies.RPL_MOTD("This is a test MOTD that"))
+        reply.append(Replies.RPL_MOTD("is long"))
+        reply.append(Replies.RPL_MOTD("blah blah blah blah blah blah"))
+        reply.append(Replies.RPL_MOTD("blah blah blah blah blah blah"))
+        reply.append(Replies.RPL_MOTD("blah blah blah blah blah blah"))
+        reply.append(Replies.RPL_MOTD("blah blah blah blah blah blah"))
+        reply.append(Replies.RPL_MOTD("blah blah blah blah blah blah"))
+        reply.append(Replies.RPL_MOTD("blah blah blah blah blah blah"))
+        reply.append(Replies.RPL_MOTD("blah blah blah blah blah blah"))
+        reply.append(Replies.RPL_MOTD("Don't do anything stupid"))
+        reply.append(Replies.RPL_MOTD("Have a nice day!"))
+        reply.append(Replies.RPL_ENDOFMOTD)
     }
 }
 
@@ -76,3 +81,4 @@ object MOTD extends AbstractCommandExecutable("motd") {
 //        ReplyBuilder(Reply.RPL_NONE)
 //    }
 //}
+
