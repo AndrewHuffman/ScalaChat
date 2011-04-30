@@ -5,7 +5,7 @@ import org.squeryl._
 import dsl.ast.LogicalBoolean
 import org.apache.log4j.Logger
 
-abstract class Model[T](protected val table :Table[T]) {
+abstract class Model[T <: KeyedEntity[Long]](protected val table :Table[T]) {
     val getAllQuery = from(table)(t => select(t))
     val logger = Logger.getLogger(classOf[Model[T]])
 
@@ -15,11 +15,9 @@ abstract class Model[T](protected val table :Table[T]) {
         }
     }
 
-    def count = {
-        execute {
-            getAllQuery.size
-        }
-    }
+    def update(record: T) { execute { table.update(record) } }
+
+    def count = execute { getAllQuery.size }
 
     def insert(row :T):T = execute {
         table.insert(row)
@@ -32,10 +30,6 @@ abstract class Model[T](protected val table :Table[T]) {
     }
 
     def execute[T](p: => T):T = IRCDB.execute { p }
-
-//    def get(id: Long):Option[T] = execute {
-//        table.lookup(id)
-//    }
 
     def getWhere(whereClause:T => LogicalBoolean) = {
         val query = table.where(whereClause)

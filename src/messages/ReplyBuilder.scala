@@ -2,8 +2,8 @@ package messages
 
 import messages._
 import parsers.{CommandParser, Params}
-import db.User
 import collection.mutable.ArrayBuffer
+import targets.User
 
 //TODO: I dislike this class. The method with communicating to clients needs to be overhauled
 object ReplyBuilder {
@@ -11,8 +11,9 @@ object ReplyBuilder {
 
     }
 }
-class ReplyBuilder(dstNick: String) {
-    val _replies = new ArrayBuffer[ReplyMessage]
+class ReplyBuilder(user: User) {
+    val _replies = new ArrayBuffer[Message]
+    private val dstNick = user.record.nick
 
     def append(replyMsg: ReplyMessage):ReplyBuilder = {
         _replies.append(replyMsg)
@@ -28,11 +29,15 @@ class ReplyBuilder(dstNick: String) {
         append(new ReplyMessage(dstNick, reply))
     }
 
+    def append(msg: Message):ReplyBuilder = {
+        append(msg)
+    }
+
     def get:String = {
         val sb = new StringBuilder
 
         _replies.foreach ((replyMessage) => {
-            if (replyMessage.reply != Replies.RPL_NONE) {
+            if (replyMessage.command != Replies.RPL_NONE.getCode) {
                 sb.append(replyMessage.toString)
                 sb.append("\n")
             }

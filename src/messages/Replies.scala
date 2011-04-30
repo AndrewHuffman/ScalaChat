@@ -28,6 +28,19 @@ object Replies {
     case object RPL_CREATED extends Reply(3, ":This server was created today.")
     //REAL
 	case object RPL_NONE extends Reply(300,"")
+    case class RPL_NAMEREPLY(chan: String, names: Iterable[String]) extends Reply(353, "") {
+        override def getFormattedMessage = {
+            val sb = new StringBuilder
+            sb.append("= ").append(chan).append(" :")
+            names.foreach(usr => {
+                sb.append(usr).append(" ")
+            })
+            sb.toString()
+        }
+    }
+    case class RPL_NOTOPIC(chan: String) extends Reply(331, chan, "No topic is set")
+    case class RPL_TOPIC(chan: String, topic: String) extends Reply(332, chan, topic)
+    case class RPL_ENDOFNAMES(chan: String) extends Reply(366, chan, "End of /NAMES list")
     case object RPL_MOTDSTART extends Reply(375, ":- 127.0.0.1 Message of the day  -")
     case class RPL_MOTD(motd: String) extends Reply(372, ":"+ motd)
     case object RPL_ENDOFMOTD extends Reply(376, ":End of /MOTD command")
@@ -50,7 +63,7 @@ object Replies {
 	case class ERR_ERRONEUSNICKNAME(nick: String) extends Reply(432, nick, "Erroneus nickname")
 	case class ERR_NICKNAMEINUSE(nick: String) extends Reply(433, nick, "Nickname is already in use")
 //	case object ERR_USERNOTINCHANNEL extends Reply(441, "They aren't on that channel")
-//	case object ERR_NOTONCHANNEL extends Reply(442, "You're not on that channel")
+	case class ERR_NOTONCHANNEL(chan: String) extends Reply(442, chan, "You're not on that channel")
 //	case object ERR_USERONCHANNEL extends Reply(443, "is already on channel")
 //	//444-450
 //	case object ERR_NOTREGISTERED extends Reply(451, "You have not registered")

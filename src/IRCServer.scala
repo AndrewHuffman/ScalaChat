@@ -9,6 +9,6 @@ object IRCServer {
        println("Adding Commands...")
        Commander.registerCommands(DefaultCommands) //Initialize default commands
        println("Starting Server...")
-       (new Server).start() //Initialize Server
+       Server.start() //Initialize Server
    }
 }

@@ -6,32 +6,23 @@ import messages.parsers.MessageParser
 import java.util.UUID
 import collection.mutable.ArrayBuffer
 import commands.{Commander}
-import db.{UserModel, UserTable, IRCDB, User}
+import db.tables.UserTable
+import db.{IRCDB}
 import messages.{ReplyBuilder, Message}
+import targets.User
 
 //TODO: Server will have actor which handles messages from the clients
 class UserConnection(socket: Socket) extends Thread {
+    //val host = socket.getInetAddress.getCanonicalHostName
+    val uuid = UUID.randomUUID().toString()
+    val user:User = new User(this, new UserTable(host = socket.getInetAddress.getCanonicalHostName, userConnID = uuid.toString))
 
     private val out = new PrintStream(socket.getOutputStream)
     private val in  = new BufferedReader(new InputStreamReader(socket.getInputStream))
-    val host = socket.getInetAddress.getCanonicalHostName
-
-    /**
-     * TODO:Fix
-     *
-     * The row for the user must be created when the connection is made.
-     * The nick field is unique and non-null, so it must be populated.
-     * I initialize the nick to a random UUID in order to add the row.
-     *
-     */
-    private val row = UserModel.insert(new UserTable(0, UUID.randomUUID.toString))
-    private val user = new User(this, row.id)
-
     private val parser = new MessageParser(user)
 
     override def run() {
-        println(" <<-->>" + host)
-        user.host(host)
+        println("my.server.com <<-->>" + user.record.host)
         def timeSince(time: Long) = System.currentTimeMillis - time
         var line = ""
         while({(line = in.readLine); line != null}) {
@@ -52,7 +43,7 @@ class UserConnection(socket: Socket) extends Thread {
         }
 
         //TODO: "un-register" user
-        UserModel.delete(user.id)
+        user.delete()
     }
 
     def send(msg: String) {

@@ -1,11 +1,13 @@
 package messages.parsers
 
 import util.parsing.combinator._
-import db.User
 import messages.{UserMessage, Message}
+import targets.User
 
 //TODO: rename ParamterParser
 trait CommandParser extends TargetsParser {
+    //lazy val mode: Parser[List[Mode]] =
+
     lazy val tail: Parser[Tail] = ":"~anything ^^ {
         case ":"~anything => Tail(anything)
     }

@@ -22,6 +22,7 @@
     <orderEntry type="library" name="Squeryl" level="project" />
     <orderEntry type="library" name="CGLIB - No Dep - 2.2" level="project" />
     <orderEntry type="library" name="Log4J - Works" level="project" />
+    <orderEntry type="library" name="Postgresql JDBC" level="project" />
     <javadoc-paths>
       <root url="jar://$USER_HOME$/Desktop/scalaquery_2.8.1-0.9.1-javadocs.jar!/" />
     </javadoc-paths>

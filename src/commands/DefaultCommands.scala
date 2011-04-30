@@ -1,14 +1,18 @@
 package commands
 
 import util.parsing.combinator._
-import db.User
 import messages.parsers.{Tail, UserName, NickName, TargetsParser, ChannelName}
-import messages.{Replies, UserMessage, ReplyBuilder}
+import targets.{Channels, User}
+import messages.{Replies, UserMessage, ReplyBuilder, Messages}
 
 object DefaultCommands extends AbstractCommandSet {
     addCommand(UserCommand)
     addCommand(NickCommand)
     addCommand(MOTD)
+    addCommand(Join)
+    addCommand(Part)
+    addCommand(Names)
+    addCommand(Topic)
 }
 
 
@@ -17,7 +21,7 @@ object UserCommand extends AbstractParameterCommand[(UserName,Tail)]("user") {
         case user~nws1~nws2~realname => (user, realname)
     }
 
-    override def processParams(param: (UserName, Tail), u : User, reply: ReplyBuilder) = {
+    override def processParams(param: (UserName, Tail), u : User, reply: ReplyBuilder, msg: UserMessage) = {
         val userRecord = u.record
         val nick = u.record.nick
         if (userRecord.registered) {
@@ -29,17 +33,18 @@ object UserCommand extends AbstractParameterCommand[(UserName,Tail)]("user") {
         }
     }
 }
+
 object NickCommand extends AbstractParameterCommand[NickName]("nick") {
     //TODO: nick length check
-    //TODO: notify all
-    override def processParams(nick: NickName, u: User, reply: ReplyBuilder) = {
+    //TODO: notify all - needs to be unique for each user??
+    override def processParams(nick: NickName, u: User, reply: ReplyBuilder, msg: UserMessage) = {
         val userRecord = u.record
         val oldNick = if (userRecord.registered) u.record.nick else ""
 
         if (nick.inUse) {
             reply.append(Replies.ERR_NICKNAMEINUSE(nick.name))
         } else {
-            u.nick(nick.name)
+            u.changeNick(nick.name)
             reply.append(Replies.RPL_NONE)
         }
     }
@@ -47,10 +52,100 @@ object NickCommand extends AbstractParameterCommand[NickName]("nick") {
     def paramParser = opt(":")~>nickname
 }
 
+
+//TODO: Add support for keys
+object Join extends AbstractParameterCommand[List[ChannelName]]("join") {
+    override def processParams(params: List[ChannelName], u: User, reply: ReplyBuilder, msg: UserMessage) = {
+        params.foreach(chan => {
+            val chanName = chan.name
+            val channel =
+                chan.getChannel match {
+                    case Some(chan) => chan
+                    case None => Channels.create(chanName)
+                }
+            if (!u.isIn(channel)) {
+                u.join(channel)
+                channel.send(Messages.JoinMessage(chanName, u))
+                if (!channel.getTopic.isEmpty) {
+                    reply.append(Replies.RPL_TOPIC(chanName, channel.getTopic))
+                }
+                reply.append(Names.execute(msg))
+            }
+        })
+        reply
+    }
+
+    def paramParser = repsep(channel,",")
+}
+
+object Part extends AbstractParameterCommand[List[ChannelName]]("part") {
+    override def processParams(chans: List[ChannelName], u: User, reply: ReplyBuilder, msg: UserMessage) = {
+        chans.foreach(chan => {
+            chan.getChannel match {
+                case Some(c) => {
+                    c.send(Messages.PartMessage(c.record.name, u))
+                    u.part(c)
+                }
+                case None => reply.append(Replies.ERR_NOSUCHCHANNEL(chan.name))
+            }
+        })
+        reply
+    }
+
+    def paramParser = repsep(channel, ",")
+}
+
+
+object Names extends AbstractParameterCommand[List[ChannelName]]("names") {
+    override def processParams(chans: List[ChannelName], u: User, reply: ReplyBuilder, msg: UserMessage) = {
+        chans.foreach(chan => {
+            val usrs =
+                chan.getChannel match {
+                    case Some(c) => {
+                        for(c <- c.users) yield c.nick
+                    }
+                    case None => Nil
+                }
+            reply.append(Replies.RPL_NAMEREPLY(chan.name, usrs))
+            reply.append(Replies.RPL_ENDOFNAMES(chan.name))
+        })
+        reply
+    }
+
+    def paramParser = repsep(channel, ",")
+}
+
+object Topic extends AbstractParameterCommand[(ChannelName,Option[Tail])]("topic") {
+    override def processParams(param: (ChannelName, Option[Tail]), u: User, reply: ReplyBuilder, msg: UserMessage) = {
+        val chanName = param._1
+        val topic = param._2
+        //TODO: Allow changing of topic
+        chanName.getChannel match {
+            case Some(channel) => {
+                if (channel.containsUser(u)) {
+                    if (channel.getTopic.isEmpty) {
+                        reply.append(Replies.RPL_NOTOPIC(chanName.name))
+                    } else {
+                        reply.append(Replies.RPL_TOPIC(chanName.name, channel.getTopic))
+                    }
+                } else {
+                    reply.append(Replies.ERR_NOTONCHANNEL(chanName.name))
+                }
+            }
+            case None => reply.append(Replies.ERR_NOTONCHANNEL(chanName.name))
+        }
+    }
+
+    def paramParser = channel~opt(tail) ^^ {
+        case chan~topic => (chan, topic)
+    }
+}
+
+
 object MOTD extends AbstractCommandExecutable("motd") {
     def execute(msg: UserMessage) = {
-        val nick = msg.user.record.nick
-        val reply = new ReplyBuilder(nick)
+        val reply = new ReplyBuilder(msg.user)
+        //TODO: This should be read in from a properties file
         reply.append(Replies.RPL_MOTDSTART)
         reply.append(Replies.RPL_MOTD("Welcome to ScalaChat"))
         reply.append(Replies.RPL_MOTD("This is a test MOTD that"))
@@ -67,18 +162,9 @@ object MOTD extends AbstractCommandExecutable("motd") {
         reply.append(Replies.RPL_ENDOFMOTD)
     }
 }
-
-//object Join extends AbstractParameterCommand[(List[ChannelName],List[String])]("join") {
-//    def paramParser = repsep(channel,",")~opt(nonwhitespace)/*~opt(repsep(nonWhiteSpace),",")*/
-//    def apply(param: (List[ChannelName], Option[String]), u:User) {
-//        val chans = param._1
-//        val joinMessage = param._2.getOrElse { "" }
-//        chans.foreach (c=> {
-//            if (c.exists && user.canJoin(c) && !user.isIn(c)) {
-//                u.join(c,joinMessage)
-//            }
-//        })
-//        ReplyBuilder(Reply.RPL_NONE)
+//
+//class Mode(mode: Char) extends AbstractParameterCommand[("mode") {
+//    def execute(msg: UserMessage) = {
+//
 //    }
 //}
-

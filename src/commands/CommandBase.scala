@@ -2,8 +2,8 @@ package commands
 
 import messages._
 import parsers.{CommandParser, Params}
-import db.User
 import collection.mutable.ArrayBuffer
+import targets.User
 
 //TODO: Create a CommandBuilder
 
@@ -16,36 +16,48 @@ trait Executable {
 
 abstract class AbstractCommandExecutable(val name: String) extends Executable
 
-
-//TODO: Investigate whether or not I actually need to separate
-//parameters from the command.
-
 abstract class AbstractParameterCommand[T](name: String)
     extends AbstractCommandExecutable(name) with CommandParser {
 
-    def parseParams(params: String):T = {
+    def parseParams(params: String):Option[T] = {
         def printResult(resultType: String, msg: String, next: Input) {
             println("("+resultType+") msg/T: " + msg + ", next: " + next.source)
         }
 
         val result = parseAll(paramParser, params)
-         result match {
-            case Error(msg, next) => printResult("error",msg, next)
-            case Failure(msg, next) => printResult("failure",msg, next)
+         val ret = result match {
+            case Error(msg, next) => {
+                printResult("error",msg, next)
+                None
+            }
+            case Failure(msg, next) => {
+                printResult("failure",msg, next)
+                None
+            }
             case Success(t, next) => {
                 printResult("success", t.toString, next)
+                Some(result.get)
             }
         }
-        result.get
+        ret
     }
 
     def execute(msg:UserMessage):ReplyBuilder = {
         val parseOutput = parseParams(msg.params)
-        processParams(parseOutput, msg.user, new ReplyBuilder(msg.user.record.nick))
+        parseOutput match {
+            case Some(out) => {
+                //TODO: Change signature to be (T, UserMEssage, ReplyBuildeR)
+                processParams(out, msg.user, new ReplyBuilder(msg.user), msg)
+            }
+            case None => {
+                (new ReplyBuilder(msg.user)).append(Replies.ERR_NEEDMOREPARAMS(msg.command))
+            }
+        }
+
     }
 
     protected def paramParser: Parser[T]
 
-    def processParams(t: T, u: User, replyBuilder: ReplyBuilder):ReplyBuilder
+    def processParams(t: T, u: User, replyBuilder: ReplyBuilder, msg: UserMessage):ReplyBuilder
 }
 

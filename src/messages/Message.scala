@@ -1,7 +1,7 @@
 package messages
 
 import parsers._
-import db.User
+import targets.User
 
 class Message(val prefix:Option[String], val command:String, val params:String = "") {
     def this(prefix: String, command: String, params: Params) = this(Some(prefix),command, params.toString)
@@ -22,4 +22,9 @@ object Message {
     def create(prefix: String, command: Int, params:List[String], tail: String) {
 
     }
+}
+
+object Messages {
+    case class JoinMessage(channel: String, user: User) extends Message(Some(user.mask.toString),"JOIN", ":"+channel)
+    case class PartMessage(channel: String, user: User) extends Message(Some(user.mask.toString),"PART", ":"+channel)
 }
