@@ -2,14 +2,16 @@ package net
 
 import java.net.Socket
 import java.io.{BufferedReader, InputStreamReader, PrintStream}
-import messages.parsers.MessageParser
 import java.util.UUID
 import collection.mutable.ArrayBuffer
 import commands.{Commander}
 import db.tables.UserTable
 import db.{IRCDB}
-import messages.{ReplyBuilder, Message}
 import targets.User
+import util.parsing.combinator.Parsers
+import messages.parsers.ParseSuccess._
+import messages.{Replies, ReplyBuilder, Message}
+import messages.parsers.{ParseFailure, ParseSuccess, MessageParser}
 
 //TODO: Server will have actor which handles messages from the clients
 class UserConnection(socket: Socket) extends Thread {
@@ -24,25 +26,31 @@ class UserConnection(socket: Socket) extends Thread {
     override def run() {
         println("my.server.com <<-->>" + user.record.host)
         def timeSince(time: Long) = System.currentTimeMillis - time
-        var line = ""
-        while({(line = in.readLine); line != null}) {
-            console("<-" + line)
+        var line = in.readLine
 
-            val msgToken = parser.parseLine(line.trim)
+        while(line != null) {
+            println("<-" + line)
 
-            val command = msgToken.command.toUpperCase
+            val parserResult = parser.parseLine(line.trim)
+            val reply = parserResult match {
+                case ParseSuccess(msgToken) => {
+                    //val command = msgToken.command.toUpperCase
+                    //val time = System.currentTimeMillis
+                    Commander.execute(msgToken)
+//                    val timeDelta = timeSince(time)
+//                    println("dT ("+command+"): " + timeDelta)
+                }
+                case ParseFailure() => {
+                    (new ReplyBuilder(user)).append(Replies.RPL_CUSTOM("Error processing commands"))
+                }
+            }
 
-            val time = System.currentTimeMillis
-            val reply = Commander.execute(msgToken)
-            val timeDelta = timeSince(time)
-            console("dT ("+command+"): " + timeDelta)
-
-            //TODO: Handle parser error
             user.send(reply.get)
-            Thread.sleep(50)
-        }
 
-        //TODO: "un-register" user
+            if (!socket.isClosed) line = in.readLine
+            else line = null
+        }
+        println("DELETING USER...." + user.record.nick)
         user.delete()
     }
 
@@ -50,11 +58,11 @@ class UserConnection(socket: Socket) extends Thread {
         //don't send empty messages.
         if (!msg.trim.isEmpty) {
             out.println(msg)
-            console("-> " + msg)
+            println("-> " + msg)
         }
     }
 
-    def console(msg: CharSequence) {
-        Console.println(msg)
+    def disconnect() {
+        socket.close()
     }
 }

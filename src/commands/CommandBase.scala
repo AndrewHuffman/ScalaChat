@@ -1,7 +1,7 @@
 package commands
 
 import messages._
-import parsers.{CommandParser, Params}
+import parsers.{ParameterParser, Params}
 import collection.mutable.ArrayBuffer
 import targets.User
 
@@ -17,7 +17,7 @@ trait Executable {
 abstract class AbstractCommandExecutable(val name: String) extends Executable
 
 abstract class AbstractParameterCommand[T](name: String)
-    extends AbstractCommandExecutable(name) with CommandParser {
+    extends AbstractCommandExecutable(name) with ParameterParser {
 
     def parseParams(params: String):Option[T] = {
         def printResult(resultType: String, msg: String, next: Input) {
@@ -46,7 +46,6 @@ abstract class AbstractParameterCommand[T](name: String)
         val parseOutput = parseParams(msg.params)
         parseOutput match {
             case Some(out) => {
-                //TODO: Change signature to be (T, UserMEssage, ReplyBuildeR)
                 processParams(out, msg.user, new ReplyBuilder(msg.user), msg)
             }
             case None => {
@@ -58,6 +57,7 @@ abstract class AbstractParameterCommand[T](name: String)
 
     protected def paramParser: Parser[T]
 
+    //TODO: Change signature to be (T, UserMEssage, ReplyBuildeR)
     def processParams(t: T, u: User, replyBuilder: ReplyBuilder, msg: UserMessage):ReplyBuilder
 }
 

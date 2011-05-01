@@ -2,7 +2,7 @@ package targets
 
 import messages.Message
 
-abstract class Target {
+trait Target {
     def send(out: String)
 
     def send(message: Message) {

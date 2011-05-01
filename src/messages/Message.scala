@@ -18,13 +18,11 @@ class Message(val prefix:Option[String], val command:String, val params:String =
 class UserMessage(val user: User, command :String, params : Option[Params])
     extends Message(command, params.getOrElse{Params("")})
 
-object Message {
-    def create(prefix: String, command: Int, params:List[String], tail: String) {
-
-    }
-}
-
 object Messages {
     case class JoinMessage(channel: String, user: User) extends Message(Some(user.mask.toString),"JOIN", ":"+channel)
     case class PartMessage(channel: String, user: User) extends Message(Some(user.mask.toString),"PART", ":"+channel)
+    case class PrivateMessage(target: String, user: User, msg:String) extends Message(Some(user.mask.toString),"PRIVMSG", target+ " :" + msg)
+    case class NickMessage(newNick: String, user: User) extends Message(Some(user.mask.toString), "NICK", ":" + newNick)
+    case class QuitMessage(msg: String, user: User) extends Message(Some(user.mask.toString), "QUIT", ":"+msg)
+    case class TopicMessage(topic: String, chan: String, user: User) extends Message(Some(user.mask.toString), "TOPIC", chan + " :" + topic)
 }

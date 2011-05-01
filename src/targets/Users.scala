@@ -27,16 +27,9 @@ object Users extends Model[UserTable](IRCDB.users) {
 
     def get(mask: UserMask):Option[UserTable] = execute { None }
 
-    def delete(user_id: Long) = execute {
-        users.deleteWhere(u => u.id === user_id)
+    def delete(user_id: Long) = {
+        execute {
+            println("user delete:" + users.deleteWhere(_.id === user_id))
+        }
     }
-
-    def join(channelName: String) = {
-
-    }
-
-    def join(record: Channel) = {
-
-    }
-
 }

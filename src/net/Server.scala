@@ -22,7 +22,8 @@ object Server {
         }
     }
 
-    //def getConnection(uuid: UUID) = {
+    //TODO: This is smelly code. There should be a better way of
+    //finding the connection that is associated with a user record
     def getConnection(uuid: String) = {
         connections.find(_.uuid.equals(uuid))
     }

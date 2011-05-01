@@ -1,6 +1,7 @@
 package messages.parsers
 
-import targets.{Channel, Channels, Users}
+import targets.{Channel, Channels, Users, User}
+import net.Server
 
 abstract class Tokens
 abstract class Prefix extends Tokens
@@ -24,14 +25,35 @@ case class Params(params: String) extends Tokens {
     override def toString = params
 }
 
-case class NickName(name:String) extends Tokens {
-    def inUse = {
+class Receiver extends Tokens
+
+case class NickName(name:String) extends Receiver {
+    /**
+     * Returns true if a use with this nickname is connected
+     * to the server.
+     */
+    def exists = {
         Users.exists(name)
     }
 
     override def toString = name
+
+
+    /**
+     * If a user with this nick name exists, it will return
+     * a Some containing the User object. Otherwise it will
+     * return None
+     */
+    def getUser:Option[User] = {
+        Users.get(name) match {
+            case Some(record) => {
+                Some(Server.getConnection(record.userConnID).get.user)
+            }
+            case None => None
+        }
+    }
 }
-case class ChannelName(name:String) extends Tokens {
+case class ChannelName(name:String) extends Receiver {
     override def toString = name
 
     def exists = Channels.exists(name)

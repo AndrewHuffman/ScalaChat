@@ -1,16 +1,10 @@
 package messages
 
 import messages._
-import parsers.{CommandParser, Params}
+import parsers.{ParameterParser, Params}
 import collection.mutable.ArrayBuffer
 import targets.User
 
-//TODO: I dislike this class. The method with communicating to clients needs to be overhauled
-object ReplyBuilder {
-    def create(dstNick: String, replyMessage: ReplyMessage) {
-
-    }
-}
 class ReplyBuilder(user: User) {
     val _replies = new ArrayBuffer[Message]
     private val dstNick = user.record.nick

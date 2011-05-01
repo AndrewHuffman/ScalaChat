@@ -1,16 +1,21 @@
 package targets
 
-import net.UserConnection
 import db.tables.UserTable
 import db.{IRCDB}
 
 import org.squeryl.PrimitiveTypeMode._
 import messages.parsers.UserMask
 import messages.{Messages, Message}
+import collection.mutable.HashSet
+import net.{Server, UserConnection}
 
 class User(val connection: UserConnection, val record: UserTable) extends Target {
     //val users = IRCDB.users
     Users.insert(record)
+
+    def quit() {
+        connection.disconnect()
+    }
 
     def mask = {
         new UserMask(record.nick, record.user, record.host)
@@ -46,6 +51,10 @@ class User(val connection: UserConnection, val record: UserTable) extends Target
     }
 
     def delete() {
+        IRCDB.execute {
+            println("chan dissociate:" + record.channels.dissociateAll)
+            println("invite dissociate: " + record.invites.dissociateAll)
+        }
         Users.delete(record.id)
     }
 
@@ -92,8 +101,34 @@ class User(val connection: UserConnection, val record: UserTable) extends Target
      * Sends String to all channels the user is within.
      */
     def broadcast(out: String) {
-        channels.foreach(c => {
-            (new Channel(c)).send(out)
+        uniqueCompanions.foreach(u => {
+            u.send(out)
         })
     }
+
+    /**
+     * Returns a list of unique Users that are within all the channels this user is in.
+     *
+     * TODO: It's not even funny how inefficeint this function is
+     */
+    def uniqueCompanions = {
+        val _set = HashSet.empty[UserTable]
+        //add the users in all the common channels to a set (removing duplicates)
+        for(c <- channels) {
+            (new Channel(c)).users.foreach(usr => {
+                _set += usr
+            })
+        }
+        //translate each UserTable to a User by finding the UserConnection
+        _set.map(record => {
+            val conn = Server.getConnection(record.userConnID)
+            conn.get.user
+        })
+    }
+
+    def isOpIn(channel: Channel) = {
+        //TODO: Complete
+        false
+    }
+
 }

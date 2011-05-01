@@ -13,6 +13,7 @@ object Reply {
     }
 }
 
+//TODO: Messages and Replies should be unified
 case class Reply(code: Int, msg: String) {
     def this(code: Int, params: List[String], tail: String) = this(code, Reply.msgBuilder(params, tail))
     def this(code: Int, param: String, tail: String) = this(code,List(param),tail)
@@ -79,7 +80,7 @@ object Replies {
 //	case object ERR_BADCHANNELKEY extends Reply(475, "Cannot join channel (+k)")
 //	//476-481 NONE
 //	case object ERR_NOPRIVILEGES extends Reply(481, "Permission Denied- You're not an IRC operator")
-//	case object ERR_CHANOPRIVSNEEDED extends Reply(482, "You're not channel operator")
+	case class ERR_CHANOPRIVSNEEDED(channel: String) extends Reply(482, channel, "You're not channel operator")
 	//483-502
 }
 
