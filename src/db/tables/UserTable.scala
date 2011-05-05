@@ -7,6 +7,15 @@ import org.squeryl.PrimitiveTypeMode._
 import db.IRCDB
 import java.util.{UUID, Date}
 
+/**
+ * User Table
+ *
+ * Schema table for the users within the database.
+ * Joins with ChannelUsres and ChannelInvites
+ * representing 2 Many-to-Many relationships with
+ * Channels for the users within a channel and users
+ * invited into a channel.
+ */
 class UserTable(val id: Long = 0, var userConnID: String, var nick : String = "",
                 var user : String = "", var real: String = "",
                 val host : String = "", var away : String = "",

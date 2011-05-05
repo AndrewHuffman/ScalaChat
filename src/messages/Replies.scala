@@ -47,6 +47,9 @@ object Replies {
     case object RPL_ENDOFMOTD extends Reply(376, ":End of /MOTD command")
     case class RPL_CUSTOM(customMsg: String) extends Reply(200, ":"+ customMsg)
 	//301-400
+    case object RPL_LISTSTART extends Reply(321, "Channel: Users Name")
+    case class RPL_LIST(channel: String, visible: String, topic:String) extends Reply(322, List(channel, visible), topic)
+    case object RPL_LISTEND extends Reply(323, ":End of /LIST")
 	/* Error Replies */
 	case class ERR_NOSUCHNICK(nick: String) extends Reply(401, nick, "No such nick/channel")
 	case class ERR_NOSUCHSERVER(server: String) extends Reply(402, server, "No such server")
@@ -81,6 +84,7 @@ object Replies {
 //	//476-481 NONE
 //	case object ERR_NOPRIVILEGES extends Reply(481, "Permission Denied- You're not an IRC operator")
 	case class ERR_CHANOPRIVSNEEDED(channel: String) extends Reply(482, channel, "You're not channel operator")
+    case class RPL_COMMANDNOTSUPPORTED(command: String) extends Reply(999, ":Command("+command+") not yet supported")
 	//483-502
 }
 

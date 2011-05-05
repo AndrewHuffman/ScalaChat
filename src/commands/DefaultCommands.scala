@@ -5,18 +5,6 @@ import targets.{Channels, User, Channel}
 import messages.{Replies, UserMessage, ReplyBuilder, Messages}
 import messages.parsers._
 
-object DefaultCommands extends AbstractCommandSet {
-    addCommand(UserCommand)
-    addCommand(NickCommand)
-    addCommand(MOTD)
-    addCommand(Join)
-    addCommand(Part)
-    addCommand(Names)
-    addCommand(Topic)
-    addCommand(PrivMsg)
-    addCommand(Quit)
-}
-
 /************************************************
  *                 COMMANDS
  *
@@ -31,6 +19,16 @@ object DefaultCommands extends AbstractCommandSet {
  * indicated through a *
  ************************************************/
 
+
+/***
+ * User command
+ *
+ * example: User <user> <host> <servername> :<realname>
+ *
+ * Used in the registration process when the user connects.
+ * <host> and <servername> are ignored since this is not
+ * typically applicable.
+ */
 object UserCommand extends AbstractParameterCommand[(UserName,Tail)]("user") {
     def paramParser:Parser[(UserName, Tail)] = username~nonWhiteSpace~nonWhiteSpace~tail ^^ {
         case user~nws1~nws2~realname => (user, realname)
@@ -49,6 +47,13 @@ object UserCommand extends AbstractParameterCommand[(UserName,Tail)]("user") {
     }
 }
 
+/***
+ * Nick command
+ *
+ * example: Nick <nickname>
+ *
+ * Changes the user's nick, if possible, to the given nickname
+ */
 object NickCommand extends AbstractParameterCommand[NickName]("nick") {
     override def processParams(nick: NickName, u: User, reply: ReplyBuilder, msg: UserMessage) = {
         if (nick.exists) {
@@ -64,8 +69,17 @@ object NickCommand extends AbstractParameterCommand[NickName]("nick") {
     def paramParser = opt(":")~>nickname
 }
 
+/***
+ * Join command
+ *
+ * example: JOIN <channel> {, <channel>}
+ *
+ * Joins the provided channels, if possible. Creates a Channel
+ * if the channel doesn't already exist.
+ *
+ * TODO: Add support for keys
+ */
 
-//TODO: Add support for keys
 object Join extends AbstractParameterCommand[List[ChannelName]]("join") {
     override def processParams(params: List[ChannelName], u: User, reply: ReplyBuilder, msg: UserMessage) = {
         params.foreach(chan => {
@@ -90,6 +104,13 @@ object Join extends AbstractParameterCommand[List[ChannelName]]("join") {
     def paramParser = repsep(channel,",")
 }
 
+/***
+ * Part command
+ *
+ * example: PART <channel> {, <channel> }
+ *
+ * Will have the user who issued this command leave the given chanenls.
+ */
 object Part extends AbstractParameterCommand[List[ChannelName]]("part") {
     override def processParams(chans: List[ChannelName], u: User, reply: ReplyBuilder, msg: UserMessage) = {
         chans.foreach(chan => {
@@ -106,7 +127,13 @@ object Part extends AbstractParameterCommand[List[ChannelName]]("part") {
 
     def paramParser = repsep(channel, ",")
 }
-
+/***
+ * PrivMSg command
+ *
+ * example: PRIVMSG <channel/user> :<message>
+ *
+ * Sends the message to the given channel or user.
+ */
 object PrivMsg extends AbstractParameterCommand[(Either[ChannelName, NickName],Tail)]("privmsg") {
     override def processParams(params: (Either[ChannelName, NickName],Tail), u: User, reply: ReplyBuilder, msg: UserMessage) = {
         val target = params._1
@@ -143,7 +170,15 @@ object PrivMsg extends AbstractParameterCommand[(Either[ChannelName, NickName],T
             }
     }
 }
-
+/***
+ * Names command
+ *
+ * example: NAMES <channel> {, <channel>}
+ *
+ * Displays the names of the users within the provided channels(s)
+ *
+ * TODO: Handle operators and voice-enabled
+ */
 object Names extends AbstractParameterCommand[List[ChannelName]]("names") {
     override def processParams(chans: List[ChannelName], u: User, reply: ReplyBuilder, msg: UserMessage) = {
         chans.foreach(chan => {
@@ -163,6 +198,14 @@ object Names extends AbstractParameterCommand[List[ChannelName]]("names") {
     def paramParser = repsep(channel, ",")
 }
 
+/***
+ * quit command
+ *
+ * example: QUIT [:QUIT MESSAGE]
+ *
+ * Disconnects the user from the user and, if a message is given
+ * this will be displayed when the user disconnects.
+ */
 object Quit extends AbstractParameterCommand[Option[Tail]]("quit") {
     override def processParams(param: Option[Tail], u: User, reply: ReplyBuilder, msg: UserMessage) = {
         val quitMsg = param match {
@@ -178,9 +221,15 @@ object Quit extends AbstractParameterCommand[Option[Tail]]("quit") {
 }
 
 /***
- * Topic command
+ * topic command
  *
  * example: TOPIC <channel> [new topic]
+ *
+ * If given [new topic], changes the topic of <channel>
+ * if the user has permission.
+ *
+ * When [new topic] is omitted, it will display the topic of the
+ * channel, if the user has permission.
  */
 object Topic extends AbstractParameterCommand[(ChannelName,Option[Tail])]("topic") {
     override def processParams(param: (ChannelName, Option[Tail]), u: User, reply: ReplyBuilder, msg: UserMessage) = {
@@ -222,7 +271,45 @@ object Topic extends AbstractParameterCommand[(ChannelName,Option[Tail])]("topic
         case chan~topic => (chan, topic)
     }
 }
+/***
+ * Ping command
+ *
+ * example: PING [:<ping message>]
+ *
+ * Server will respond to the client with a PONG
+ */
+object Ping extends AbstractParameterCommand[Option[Tail]]("ping") {
+    override def processParams(param: Option[Tail], u: User, reply: ReplyBuilder, msg: UserMessage) = {
+        val tailStr = param.getOrElse({Tail("")}).tail
+        reply.append(Messages.PongMessage(tailStr))
+        reply
+    }
+    def paramParser = opt(tail)
+}
 
+/***
+ * List command
+ *
+ * example: List
+ *
+ * Lists all the channels
+ *
+ * TODO: Needs to Support parameters
+ * TODO: Filter out p & s mode chans
+ */
+object List extends AbstractCommandExecutable("list") {
+    def execute(msg: UserMessage) = {
+        val reply = new ReplyBuilder(msg.user)
+        reply.append(Replies.RPL_LISTSTART)
+        Channels.getAll.foreach((channelRecord) => {
+            val name = channelRecord.name
+            val users = (new Channel(channelRecord)).numUsers
+            val topic = channelRecord.topic
+            reply.append(Replies.RPL_LIST(channelRecord.name, users.toString, topic))
+        })
+        reply.append(Replies.RPL_LISTEND)
+    }
+}
 
 object MOTD extends AbstractCommandExecutable("motd") {
     def execute(msg: UserMessage) = {
@@ -245,12 +332,32 @@ object MOTD extends AbstractCommandExecutable("motd") {
     }
 }
 
-//object Ping extends AbstractParameterCommand[Option[Tail]]
+trait UnsupportedCommand extends Executable {
+    def execute(msg: UserMessage) = {
+        val reply = new ReplyBuilder(msg.user)
+        reply.append(Replies.RPL_COMMANDNOTSUPPORTED(msg.command))
+    }
+}
 
+object Mode extends AbstractCommandExecutable("mode") with UnsupportedCommand
+object UserHost extends AbstractCommandExecutable("userhost") with UnsupportedCommand
+object Oper extends AbstractCommandExecutable("oper") with UnsupportedCommand
+object Kick extends AbstractCommandExecutable("Kick") with UnsupportedCommand
 
-//
-//class Mode(mode: Char) extends AbstractParameterCommand[("mode") {
-//    def execute(msg: UserMessage) = {
-//
-//    }
-//}
+object DefaultCommands extends AbstractCommandSet {
+    addCommand(UserCommand)
+    addCommand(NickCommand)
+    addCommand(MOTD)
+    addCommand(Join)
+    addCommand(Part)
+    addCommand(Names)
+    addCommand(Topic)
+    addCommand(PrivMsg)
+    addCommand(Quit)
+    addCommand(Ping)
+    addCommand(Mode)
+    addCommand(UserHost)
+    addCommand(Oper)
+    addCommand(Kick)
+    addCommand(List)
+}

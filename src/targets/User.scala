@@ -9,47 +9,77 @@ import messages.{Messages, Message}
 import collection.mutable.HashSet
 import net.{Server, UserConnection}
 
+/**
+ * Gives operations that interact with the given user record and connection.
+ */
 class User(val connection: UserConnection, val record: UserTable) extends Target {
-    //val users = IRCDB.users
+    //Insert user into DB upon creation
+    //TODO: Check if user already exists.
     Users.insert(record)
 
+    /**
+     * Disconnects the user. Does not provide a quit messsage.
+     */
     def quit() {
         connection.disconnect()
     }
 
+    /**
+     * Returns the UserMask for this user
+     */
     def mask = {
         new UserMask(record.nick, record.user, record.host)
     }
 
-    def update(p: => Unit) {
+    /**
+     * Workflow that will update the record in the server after
+     * executing p
+     */
+    private def update(p: => Unit) {
         p
         Users.update(record)
     }
 
+    /**
+     * Updates the record to indicate the user is now registerd
+     */
     def register() {
         update {
             record.registered = true
         }
     }
 
+    /**
+     * Changes the record to update the given name
+     */
     def changeNick(name: String) {
         update {
             record.nick = name
         }
     }
 
+    /**
+     * Changes the record to update the given username
+     */
     def username(name: String) {
         update {
             record.user = name
         }
     }
 
+    /**
+     * Changes the record to update the given realname
+     */
     def realname(name: String) {
         update {
             record.real = name
         }
     }
 
+    /**
+     * Deletes the record from the UserTable and all associated tables
+     * (ChannelTable and ChannelInviteTable)
+     */
     def delete() {
         IRCDB.execute {
             println("chan dissociate:" + record.channels.dissociateAll)
@@ -58,10 +88,17 @@ class User(val connection: UserConnection, val record: UserTable) extends Target
         Users.delete(record.id)
     }
 
+    /**
+     * Sends the given String to the user connection.
+     */
     def send(out: String) {
         connection.send(out)
     }
 
+    /**
+     * Returns an Iterable[ChannelTable] of all the channels
+     * the user is within.
+     */
     def channels = {
         IRCDB.execute {
             for(chan <- record.channels) yield chan
@@ -85,6 +122,10 @@ class User(val connection: UserConnection, val record: UserTable) extends Target
         chan.removeUser(this)
     }
 
+    /**
+     * Returns true if the user is within the given channel,
+     * false otherwise.
+     */
     def isIn(chan: Channel) = {
         val record = chan.record
         channels.exists(_.id == record.id)
@@ -126,6 +167,10 @@ class User(val connection: UserConnection, val record: UserTable) extends Target
         })
     }
 
+    /**
+     * Returns true if the user is an operator in the
+     * given chanenl, false otherwise.
+     */
     def isOpIn(channel: Channel) = {
         //TODO: Complete
         false
