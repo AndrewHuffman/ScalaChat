@@ -42,7 +42,7 @@ object IRCDB extends Schema {
             Session.create(
                 java.sql.DriverManager.
                     //getConnection("jdbc:h2:tcp://localhost/~/test","sa",""), new H2Adapter)
-                    getConnection("jdbc:postgresql:irc","postgres","mahuff"), new PostgreSqlAdapter)
+                    getConnection("jdbc:postgresql:irc","postgres","irc"), new PostgreSqlAdapter)
         )
         /* Define UserTable constraints */
         on(users)(u => declare(
